@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="swing">Swing Candidates</button>
+    <button class="tab" role="tab" data-tab="special">Special</button>
+    <button class="tab" role="tab" data-tab="discount">Discount</button>
+  </nav>
+
+  <!-- Swing Candidates tab -->
+  <main id="tab-swing" class="tab-panel">
+    <header>
+      <h1>Swing Trade Candidates</h1>
+      <p id="meta" class="meta"></p>
+    </header>
+
+    <section class="controls">
+      <label>Setup
+        <select id="setupFilter">
+          <option value="candidates">All candidates</option>
+          <option value="Volume Momentum">Volume Momentum</option>
+          <option value="Pullback in Uptrend">Pullback in Uptrend</option>
+          <option value="Range Bounce">Range Bounce</option>
+          <option value="all">All scanned stocks</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="hideEarnings"> Hide earnings within 10 days</label>
+    </section>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-key="rank">#</th>
+            <th data-key="sym">Ticker</th>
+            <th data-key="sector">Sector</th>
+            <th data-key="setup" data-tip-title="Setups"
+                data-tip="<b>Volume Momentum:</b> 1-month gain over 8%, volume 1.25&times; normal, above 50-day average.<br><br><b>Pullback in Uptrend:</b> 6-month gain over 15%, above 200-day average, down 3&ndash;12% in 5 days, RSI below 45.<br><br><b>Range Bounce:</b> moving sideways in a steady 8&ndash;25% channel, now near the bottom with RSI below 40.">Setup</th>
+            <th data-key="score" class="num">Score</th>
+            <th data-key="price" class="num">Price</th>
+            <th data-key="chg1d" class="num">1D</th>
+            <th data-key="ret5d" class="num">5D</th>
+            <th data-key="ret1m" class="num">1M</th>
+            <th data-key="ret6m" class="num">6M</th>
+            <th data-key="relvol" class="num" data-tip-title="Relative Volume"
+                data-tip="Average daily volume over the last month vs the prior 6 months. 1.5&times; = trading 50% more than usual. Volume Momentum needs above 1.25&times;.">Rel Vol</th>
+            <th data-key="rsi" class="num" data-tip-title="RSI: Relative Strength Index (14-day)"
+                data-tip="Momentum gauge from 0 to 100. Below 30 = oversold (sold off hard). Above 70 = overbought (ran up fast). Pullback setup needs below 45.">RSI</th>
+            <th data-key="offHigh" class="num" data-tip-title="Off 52-Week High"
+                data-tip="How far the price is below its highest close of the past year. 0% = at the high, -20% = 20% below it.">Off High</th>
+            <th data-key="earnings">Earnings</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p id="empty" class="empty" hidden>No stocks match.</p>
+
+    <section class="legend">
+      <div class="legend-item">
+        <span class="tag momentum">Volume Momentum</span>
+        <p>Rising on heavy trading: up 8%+ this month on 1.25&times; normal volume, above its 50-day average.
+          Winners on heavy volume tend to keep running. <em>Buy strength.</em></p>
+      </div>
+      <div class="legend-item">
+        <span class="tag pullback">Pullback in Uptrend</span>
+        <p>Strong stock that just dipped: up 15%+ in 6 months, above its 200-day average, down 3&ndash;12% this week, RSI under 45.
+          Dips in strong trends often bounce. <em>Buy the dip, use a stop.</em></p>
+      </div>
+      <div class="legend-item">
+        <span class="tag range">Range Bounce</span>
+        <p>Sideways stock swinging up and down in a steady 8&ndash;25% channel for ~6 weeks, now near the bottom with RSI under 40.
+          Tends to swing back up. <em>Target the middle or top of the range; stop just below the low.</em></p>
+      </div>
+      <div class="legend-score">
+        <strong>Score (0&ndash;100)</strong>
+        <p>How strong an example of its setup a stock is, ranked against every stock scanned (S&amp;P 500 + Nasdaq-100).
+          <span class="tag momentum">Volume Momentum</span> blends its 1-month gain, relative volume and 6-month gain.
+          <span class="tag pullback">Pullback in Uptrend</span> blends its 6-month strength and the size of this week&rsquo;s dip.
+          <span class="tag range">Range Bounce</span> blends how close it is to the range bottom, how often it has swung, and how oversold it is.
+          80+ is a textbook example; 50 is middle of the pack. It is not a probability of profit.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Special tab -->
+  <main id="tab-special" class="tab-panel" hidden>
+    <header>
+      <h1>Special Collection</h1>
+      <p id="special-meta" class="meta"></p>
+    </header>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th data-tip-title="Conviction"
+                data-tip="How strongly the stock lines up for a move up over the next week: setup quality, trend, volume, sector and no earnings risk. &#9733;&#9733;&#9733;&#9733;&#9733; = strongest. Not a guarantee.">Rating</th>
+            <th>Ticker</th>
+            <th>Sector</th>
+            <th class="num">Price</th>
+            <th class="num">5D</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody id="special-rows"></tbody>
+      </table>
+    </div>
+    <p id="special-empty" class="empty" hidden>No picks yet. Ask Claude to run the Special scan.</p>
+  </main>
+
+  <!-- Discount tab -->
+  <main id="tab-discount" class="tab-panel" hidden>
+    <header>
+      <h1>Discount</h1>
+      <p id="discount-meta" class="meta"></p>
+    </header>
+
+    <div class="table-wrap">
+      <table id="discount-table">
+        <thead>
+          <tr>
+            <th data-key="rank">#</th>
+            <th data-key="sym">Ticker</th>
+            <th data-key="sector">Sector</th>
+            <th data-key="price" class="num">Price</th>
+            <th data-key="valueScore" class="num" data-tip-title="Value Score (0&ndash;100)"
+                data-tip="How cheap the stock is compared with others in its own sector, blending forward P/E, EV/EBITDA and free-cash-flow yield. 100 = cheapest in its sector.">Value</th>
+            <th data-key="fpe" class="num" data-tip-title="Forward P/E"
+                data-tip="Price divided by next year&rsquo;s expected earnings per share. Lower = cheaper. A P/E of 10 means you pay $10 for every $1 of expected yearly profit.">Fwd P/E</th>
+            <th data-key="peDiscount" class="num" data-tip-title="P/E vs Sector"
+                data-tip="How the forward P/E compares with the median stock in the same sector. -40% = priced 40% cheaper than a typical peer. Picks must be at least 25% cheaper.">vs Sector</th>
+            <th data-key="evEbitda" class="num" data-tip-title="EV / EBITDA"
+                data-tip="Whole-company value (stock plus debt, minus cash) divided by operating profit. Lower = cheaper. Accounts for debt, unlike P/E. Not meaningful for banks and REITs.">EV/EBITDA</th>
+            <th data-key="fcfYield" class="num" data-tip-title="Free Cash Flow Yield"
+                data-tip="Cash the business generates each year after investment, as a % of its market value. 10% = it throws off cash equal to 10% of its price every year. Higher = cheaper.">FCF Yield</th>
+            <th data-key="roe" class="num" data-tip-title="Return on Equity"
+                data-tip="Yearly profit as a % of shareholders&rsquo; equity, a gauge of business quality. Picks must be at least 8%. Blank when equity is negative (often from big buybacks).">ROE</th>
+            <th data-key="epsGrowth" class="num" data-tip-title="Earnings Growth"
+                data-tip="Latest quarter&rsquo;s earnings per share vs the same quarter a year ago. Stocks with earnings falling more than 15% are excluded as likely value traps.">EPS Gr</th>
+            <th data-key="upside" class="num" data-tip-title="Analyst Upside"
+                data-tip="Distance from today&rsquo;s price to the average Wall Street analyst price target.">Upside</th>
+            <th data-key="dollarVol" class="num" data-tip-title="Dollar Volume"
+                data-tip="Average dollars traded per day over the last month. Picks must trade at least $50M a day, so they are easy to buy and sell.">$ Vol</th>
+            <th data-key="relvol" class="num" data-tip-title="Relative Volume"
+                data-tip="Trading volume over the last month vs the prior 6 months. Above 1&times; = more interest than usual.">Rel Vol</th>
+            <th data-key="ret6m" class="num">6M</th>
+          </tr>
+        </thead>
+        <tbody id="discount-rows"></tbody>
+      </table>
+    </div>
+    <p id="discount-empty" class="empty" hidden>No picks yet. Ask Claude to run the Discount scan.</p>
+
+    <section class="legend">
+      <div class="legend-score" style="margin-top:0;padding-top:0;border-top:none">
+        <strong>How stocks make this list</strong>
+        <p>Cheap: Value Score 70+ and forward P/E at least 25% below its sector median.
+          Healthy: profitable, positive free cash flow, return on equity 8%+, earnings not down more than 15%, debt under 2.5&times; equity.
+          Liquid: $50M+ traded per day.
+          Cheap stocks can stay cheap or be cheap for a reason (peak-cycle earnings, legal or regulatory risk, a shrinking business), so check the story before buying.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Data from Yahoo Finance, ~15 min delayed. Research tool, not financial advice.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="special-data.js"></script>
+  <script src="discount-data.js"></script>
+  <script src="tabs.js"></script>
+  <script src="app.js"></script>
+  <script src="special.js"></script>
+  <script src="discount.js"></script>
+</body>
+</html>
