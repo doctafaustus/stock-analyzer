@@ -9,6 +9,7 @@
 <body>
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="swing">Swing Candidates</button>
+    <button class="tab" role="tab" data-tab="range">Range Bounce</button>
     <button class="tab" role="tab" data-tab="special">Special</button>
     <button class="tab" role="tab" data-tab="discount">Discount</button>
   </nav>
@@ -26,7 +27,6 @@
           <option value="candidates">All candidates</option>
           <option value="Volume Momentum">Volume Momentum</option>
           <option value="Pullback in Uptrend">Pullback in Uptrend</option>
-          <option value="Range Bounce">Range Bounce</option>
           <option value="all">All scanned stocks</option>
         </select>
       </label>
@@ -41,7 +41,7 @@
             <th data-key="sym">Ticker</th>
             <th data-key="sector">Sector</th>
             <th data-key="setup" data-tip-title="Setups"
-                data-tip="<b>Volume Momentum:</b> 1-month gain over 8%, volume 1.25&times; normal, above 50-day average.<br><br><b>Pullback in Uptrend:</b> 6-month gain over 15%, above 200-day average, down 3&ndash;12% in 5 days, RSI below 45.<br><br><b>Range Bounce:</b> moving sideways in a steady 8&ndash;25% channel, now near the bottom with RSI below 40.">Setup</th>
+                data-tip="<b>Volume Momentum:</b> 1-month gain over 8%, volume 1.25&times; normal, above 50-day average.<br><br><b>Pullback in Uptrend:</b> 6-month gain over 15%, above 200-day average, down 3&ndash;12% in 5 days, RSI below 45.">Setup</th>
             <th data-key="score" class="num">Score</th>
             <th data-key="price" class="num">Price</th>
             <th data-key="chg1d" class="num">1D</th>
@@ -73,18 +73,67 @@
         <p>Strong stock that just dipped: up 15%+ in 6 months, above its 200-day average, down 3&ndash;12% this week, RSI under 45.
           Dips in strong trends often bounce. <em>Buy the dip, use a stop.</em></p>
       </div>
-      <div class="legend-item">
-        <span class="tag range">Range Bounce</span>
-        <p>Sideways stock swinging up and down in a steady 8&ndash;25% channel for ~6 weeks, now near the bottom with RSI under 40.
-          Tends to swing back up. <em>Target the middle or top of the range; stop just below the low.</em></p>
-      </div>
       <div class="legend-score">
         <strong>Score (0&ndash;100)</strong>
         <p>How strong an example of its setup a stock is, ranked against every stock scanned (S&amp;P 500 + Nasdaq-100).
           <span class="tag momentum">Volume Momentum</span> blends its 1-month gain, relative volume and 6-month gain.
           <span class="tag pullback">Pullback in Uptrend</span> blends its 6-month strength and the size of this week&rsquo;s dip.
-          <span class="tag range">Range Bounce</span> blends how close it is to the range bottom, how often it has swung, and how oversold it is.
           80+ is a textbook example; 50 is middle of the pack. It is not a probability of profit.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Range Bounce tab -->
+  <main id="tab-range" class="tab-panel" hidden>
+    <header>
+      <h1>Range Bounce</h1>
+      <p id="range-meta" class="meta"></p>
+    </header>
+
+    <section class="controls">
+      <label><input type="checkbox" id="rangeHideEarnings"> Hide earnings within 10 days</label>
+    </section>
+
+    <div class="table-wrap">
+      <table id="range-table">
+        <thead>
+          <tr>
+            <th data-key="rank">#</th>
+            <th data-key="sym">Ticker</th>
+            <th data-key="sector">Sector</th>
+            <th data-key="rangeScore" class="num" data-tip-title="Score (0&ndash;100)"
+                data-tip="Blends how close the price is to the bottom of its range, how often it has swung across its 20-day average, and how oversold it is. 80+ is a textbook example. Not a probability of profit.">Score</th>
+            <th data-key="price" class="num">Price</th>
+            <th data-key="chg1d" class="num">1D</th>
+            <th data-key="ret5d" class="num">5D</th>
+            <th data-key="ret3m" class="num">3M</th>
+            <th data-key="rangeLo" class="num" data-tip-title="Range Low"
+                data-tip="Lowest close over the 30 trading days before the last 3. A close well below it means the range has broken.">Range Low</th>
+            <th data-key="rangeHi" class="num" data-tip-title="Range High"
+                data-tip="Highest close over the same 30 days. A natural price target for the bounce.">Range High</th>
+            <th data-key="rangeWidth" class="num" data-tip-title="Range Width"
+                data-tip="How far the range high is above the range low. Setup needs 8&ndash;25%: wide enough to profit, narrow enough to be a steady channel.">Width</th>
+            <th data-key="rangePos" class="num" data-tip-title="Position in Range"
+                data-tip="Where today&rsquo;s price sits in the range. 0% = at the low, 100% = at the high. Setup needs 25% or less.">Position</th>
+            <th data-key="upside" class="num" data-tip-title="Upside to Range High"
+                data-tip="Gain if the price climbs back to the range high.">To High</th>
+            <th data-key="crosses" class="num" data-tip-title="Swings"
+                data-tip="How many times the price crossed its 20-day average in the last 30 sessions. More swings = a more reliable back-and-forth channel. Setup needs 4+.">Swings</th>
+            <th data-key="rsi" class="num" data-tip-title="RSI: Relative Strength Index (14-day)"
+                data-tip="Momentum gauge from 0 to 100. Below 30 = oversold. Setup needs below 40.">RSI</th>
+            <th data-key="earnings">Earnings</th>
+          </tr>
+        </thead>
+        <tbody id="range-rows"></tbody>
+      </table>
+    </div>
+    <p id="range-empty" class="empty" hidden>No stocks are near the bottom of a steady range right now.</p>
+
+    <section class="legend">
+      <div class="legend-item">
+        <span class="tag range">Range Bounce</span>
+        <p>Sideways stock swinging up and down in a steady 8&ndash;25% channel for ~6 weeks (3-month change within &plusmn;10%), now near the bottom with RSI under 40.
+          Tends to swing back up. <em>Target the middle or top of the range; stop just below the low.</em></p>
       </div>
     </section>
   </main>
@@ -179,6 +228,7 @@
   <script src="discount-data.js"></script>
   <script src="tabs.js"></script>
   <script src="app.js"></script>
+  <script src="range.js"></script>
   <script src="special.js"></script>
   <script src="discount.js"></script>
 </body>

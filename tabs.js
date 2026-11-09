@@ -1,7 +1,7 @@
 // Tab switching. The active tab lives in the URL hash so auto-reload keeps it.
 (function () {
   const tabs = document.querySelectorAll(".tab");
-  const panels = { swing: "tab-swing", special: "tab-special", discount: "tab-discount" };
+  const panels = { swing: "tab-swing", range: "tab-range", special: "tab-special", discount: "tab-discount" };
 
   function show(name) {
     if (!panels[name]) name = "swing";

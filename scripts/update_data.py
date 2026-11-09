@@ -9,6 +9,7 @@ Setups:
   Pullback in Uptrend  strong 6-month trend, above 200-day avg, 5-day dip of 3-12%, RSI < 45
   Range Bounce         sideways 8-25% channel over ~30 days, 4+ crosses of 20-day avg,
                        3-month change within +/-10%, now in bottom 25% of range, RSI < 40
+                       (scored separately as rangeScore; shown on its own Range Bounce tab)
 """
 import json
 import math
@@ -177,7 +178,10 @@ def main():
                 and r["price"] >= r["rangeLo"] * 0.98):
             rng = (0.4 * (1 - max(pos, 0) / 0.25) + 0.3 * min(r["crosses"] / 8, 1)
                    + 0.3 * min((40 - r["rsi"]) / 20, 1))
-            setups.append(("Range Bounce", 0.5 + rng / 2))
+            # Own tab on the page, scored separately from the swing setups.
+            r["rangeScore"] = round((0.5 + rng / 2) * 100)
+        else:
+            r["rangeScore"] = None
         if setups:
             name, score = max(setups, key=lambda x: x[1])
             r["setup"], r["score"] = name, round(score * 100)
@@ -198,6 +202,7 @@ def main():
           f"{len(rows)} kept. {n} candidates in {time.time() - started:.0f}s. Wrote {OUT}")
     from collections import Counter
     print("  by setup:", dict(Counter(r["setup"] for r in rows if r["setup"])))
+    print(f"  range bounce: {sum(1 for r in rows if r['rangeScore'])}")
     for r in rows[:n][:25]:
         print(f"  {r['sym']:6} {r['setup']:20} score {r['score']:3}  1M {r['ret1m']:+6.1f}%  "
               f"relvol {r['relvol']:.2f}  5D {r['ret5d']:+5.1f}%  {'EARN ' + r['earnings'] if r['earningsSoon'] else ''}")
